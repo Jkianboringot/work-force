@@ -391,7 +391,7 @@ join companyattrion
 
 
 
-
+#redo include the time of stayed employee
 with tenure_Department as 
 (
 select `Department`,TIMESTAMPDIFF(year,StartDate,ExitDate)year,
@@ -457,4 +457,9 @@ order by `Department`
 
 
 
-select *from second_project.employee_survey_stagging  sur
+
+
+
+
+
+

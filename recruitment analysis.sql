@@ -2,7 +2,7 @@
 			-- correlation with the high rejection
 	-- this low experience ,education level,desired salary have some thing to do with rejection 
   -- What is the success rate of applicants based on their education level or experience and desired salary?
-
+-- KINDA USELESS ANALYSIS becuase of the small data of jobtitle
  SELECT distinct * From recruitment_stagging;
 
 #add jobrole for this
@@ -119,16 +119,18 @@ SELECT  `Years of Experience`,
  from recruitment_data
 
  )select * from year_experience_acceptance
- join overall 
+ join overall o
 	on 1=1
 order by 1
  ;
  
  
+  select * From recruitment_stagging;
  
  
+ #this is useless to  
   with year_experience_acceptance as (
-SELECT  `Years of Experience`,`Job Title`,
+SELECT  `Years of Experience`,`Job Title`, 
 	count(case when Status = "Rejected" then `Applicant ID` end)*100/count(*) rejected,
     count(case when Status = "Rejected" then `Applicant ID` end) rejected_count,
     count(`Job Title`) job_count

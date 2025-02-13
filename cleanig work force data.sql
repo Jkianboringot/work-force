@@ -151,9 +151,16 @@ where rownum =1;
  alter TABLE training_and_development_stagging
 drop column rownum;
  
- update training_and_development_data
+ update training_and_development_stagging
  set `Training Date`=str_to_date(`Training Date`,"%d-%b-%Y");
  
- ALTER table training_and_development_data
+ ALTER table training_and_development_stagging
  MODIFY `Training Date` date;
 
+
+
+
+							-- important when you are about to put this in portfolio clean everyhting here clearfully
+								-- use  COALESCE to replace null value with something 
+									#COALESCE(salary, 0) null in salary will be turn to 0
+                                    #use this alot especially for the dates for tenure	
