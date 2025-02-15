@@ -62,8 +62,12 @@ order by `Education level`
  
  
  
- 
- 
+ #👍 good analysis but code be better
+ #this anwser the question what is the education acceptance rate and wether having higher education = to more acceptance
+	# but this is good but could be better since i has a probrom of some peuple just appleid and is still in applied and inreview
+	# so maybe add some date on this to make this better and more understandble to see if the one in higher education applied way letter then
+	# the other .this isto confirm if time of application is not  the fault of of some of them still being in applied and inreview since 'Master''s Degree'
+	#have a weird data and also do one with years of experi
  with education_level_acceptance as (
 SELECT  `Education level`,
 	count(case when Status = "Rejected" then `Applicant ID` end)*100/NULLIF(count(*), 0) rejected,
@@ -99,35 +103,28 @@ SELECT  `Education level`,
  SELECT distinct `Years of Experience` From recruitment_stagging;
  
 
- 
+ #👍this anwser if years of experience have corelation in having hiring acceptance than other expirience 	
+	-- cast count(*) to decimal since it does not equal to 100 means its round to the nearest number
+    -- and code make it better
  with year_experience_acceptance as (
 SELECT  `Years of Experience`,
 	count(case when Status = "Rejected" then `Applicant ID` end)*100/count(*) rejected,
-    count(case when Status = "Applied" then `Applicant ID` end) rejected_count,
-    #count(case when Status = "Applied" then `Applicant ID` end)*100/count(*) applied,
+ #   count(case when Status = "Applied" then `Applicant ID` end) rejected_count,
+    count(case when Status = "Applied" then `Applicant ID` end)*100/count(*) applied,
     count(case when Status = "Interviewing" then `Applicant ID` end)*100/count(*) interview,
-    count(case when Status = "Interviewing" then `Applicant ID` end) interview_count,
-    #count(case when Status = "In Review" then `Applicant ID` end)*100/count(*) in_review,
-    count(case when Status = "Offered" then `Applicant ID` end)*100/count(*) offered,
-     count(case when Status = "Offered" then `Applicant ID` end) offered_vount
+   # count(case when Status = "Interviewing" then `Applicant ID` end) interview_count,
+    count(case when Status = "In Review" then `Applicant ID` end)*100/count(*) in_review,
+    count(case when Status = "Offered" then `Applicant ID` end)*100/count(*) offered
+ #    count(case when Status = "Offered" then `Applicant ID` end) offered_vount
  From recruitment_stagging
  group by `Years of Experience`
- ),overall as
- (select count(case when Status = "Rejected" then `Applicant ID` end)*100/count(*) overall_rejected,
-		count(case when Status = "Interviewing" then `Applicant ID` end)*100/count(*) overall_interviw,
-        count(case when Status = "Offered" then `Applicant ID` end)*100/count(*) overall_offered
- from recruitment_data
-
+ 
  )select * from year_experience_acceptance
- join overall o
-	on 1=1
 order by 1
  ;
  
- 
-  select * From recruitment_stagging;
- 
- 
+
+ #🤢 true
  #this is useless to  
   with year_experience_acceptance as (
 SELECT  `Years of Experience`,`Job Title`, 
@@ -158,11 +155,4 @@ order by 1
  
  
  
- 
- 
- 
- 
- 
- 
- select * from recruitment_stagging;
- # use case to analyze the desired 3 column low high ave find out if any of that correlate with status
+			-- 									*************************************DONE*******************************************************

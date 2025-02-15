@@ -1,6 +1,9 @@
 #i want to find the rate of training outcome of programs 
-#what training outcome spend the most money and how to reduceit 
+#i craeted my own question on this bacause the data does not allowe me to calculate what is need to  calculate 
 
+
+#👍 this analyze the accetance rate of trainig program not really that usefull 
+-- but i wanted to see if some training program have a higher failed or complete
 with training as 
 (
 select `Training Program Name`,
@@ -28,7 +31,9 @@ SELECT *
 FROM training_and_development_stagging
  ;
 
-
+#the couse of training to see what to improve
+	-- but this could be better by adding it with training outcome to see if the money is being spend wisely and 
+		-- if failed is spendingalot of money then thier migth be a problem with the trainer or somthing else(investigate)
 with training as 
 (
 select `Training Program Name`,SUM(CAST(`Training Cost` AS SIGNED)) outcome_cost
@@ -46,7 +51,7 @@ select SUM(CAST(`Training Cost` AS SIGNED)) as company_cost
 
 
 
-#
+#👍this is good but group it by program
 with training_outcome_cost as 
 (
 select `Training Outcome`,SUM(CAST(`Training Cost` AS SIGNED)) outcome_cost
@@ -65,7 +70,7 @@ select SUM(CAST(`Training Cost` AS SIGNED)) as company_cost
 
 
 
-#combined all of this
+			-- 							*************************************DONE*******************************************************
 
 
 

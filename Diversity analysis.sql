@@ -1,4 +1,7 @@
-# create a table so that i dont have to jion every time
+# analyze if the company is not baised like does some depaertmnt have more male or female or have more white than black
+	-- the purpose is to improve the company equatibility or suggest it 
+
+# just did this because i dont want to join to much
 create table diversity_datasett as 
 (
 SELECT 
@@ -27,6 +30,8 @@ SELECT
 
 # i want to analyze them one by one first
 # do this for all the query after dont 				½W♣
+#👍 this look at the devirsity of gender in deparment some deparment might be baised to some gender but it need to see attriton to confirm
+	-- maybe improve this by race,retention or something else because kinda narrow still good
  WITH gender_distribution AS (
     SELECT 
          coalesce(Department,"Total Company Distribution") Department,
@@ -35,6 +40,7 @@ SELECT
     FROM diversity_dataset
     GROUP BY Department WITH ROLLUP
 )
+
 SELECT 
     *
 FROM gender_distribution;
@@ -42,7 +48,8 @@ FROM gender_distribution;
 
 
 
- 
+ #👍`look at the race distribution in deparment because some deparment might be baised to some race but it need to see attriton to confirm
+	-- maybe improve this by race,retention or something else because kinda narrow still good
  with department_race_distribution as 
 (
 SELECT 
@@ -62,11 +69,14 @@ FROM
  ;
 
 
-select distinct `Marital status`  from diversity_dataset;
 
 
 
 
+ #👍`look at the race distribution in deparment some deparment might be baised to some maritial but it need to see attriton to confirm
+	-- maybe improve this by race,retention or something else because kinda narrow still good
+    -- STILL 	think this is not really usefull unless if married divored have a high attrition because the reason they could leave is their personal life 
+		-- or poor lifeworkbalance
 WITH department_marital AS (
     SELECT 
         COALESCE(Department, 'Total Company Distribution') AS Department,
@@ -86,7 +96,8 @@ SELECT * FROM department_marital;
 
 
 
-
+#made this so that i can see what is the rate of diffirent diversity good if am on production so that i dont have to do it over and over again
+	-- i just have to put a name and it will show
 DELIMITER $$
 CREATE procedure diversity_distribution(in diversity varchar(50))
 begin
@@ -139,7 +150,8 @@ call diversity_distribution("maritial");
 
 
 
-
+#👍``combined this with attriton to answer see if male and female engagement contribute to high attrition
+		-- i coulk combined it with department but i dint see the reason todo that since most of the gender is equal to deparment except with one but i could tryx
 WITH engagement_distribution AS (
     SELECT 
          coalesce(`Engagement Score`,"Total Company Distribution") enagagement,
@@ -155,7 +167,8 @@ FROM engagement_distribution;
 
 
 
- 
+ #👍``combined this with attriton to answer see if race engagement contribute to high attrition
+	-- combine this with department to see if some department treat certain race badly or having poor management
  with engagement_race_distribution as 
 (
 SELECT 
@@ -179,7 +192,8 @@ select * from diversity_dataset;
 
 
 
-
+#👍 i wantto now if certian marittal have lower engagement that can be cause by pwersonal problem
+	-- this isgood i dont have to combine with anything except attriton because this could cause loss of focus and cause stress and thus adding to attrition
 WITH engagement_marital AS (
     SELECT 
         COALESCE(`Engagement Score`, 'Total Company Distribution') AS engagement,
@@ -197,7 +211,7 @@ SELECT * FROM engagement_marital;
 
 
 
-
+#useless
 WITH tenure_distribution AS (
     SELECT 
          coalesce(tenure_months,"Total Company Distribution") tenure_months,
@@ -213,7 +227,8 @@ FROM tenure_distribution;
 
 
 
- 
+ # 👍 look at race tenure if some race have low on the 4 to 6 year then thatsa  sign that they are being suppress or being with hold of oppurtinity to grow
+	-- or some of them being in 0 to 1 and having low means either they are being discriminated but look at this with attriton and department to confirm
  with tenure_race_distribution as 
 (
 SELECT 
@@ -233,11 +248,11 @@ FROM
  ;
 
 
-select distinct `Marital status`  from diversity_dataset;
 
 
 
  -- -------------------------------------------------------------------------------------------------------------
+ #!!! i dont seethe reason for this to be put in the anlysis but i will leave this here
 WITH tenure_marital AS (
     SELECT 
         COALESCE(tenure_months, 'Total Company Distribution') AS tenure,
@@ -249,7 +264,7 @@ WITH tenure_marital AS (
     GROUP BY tenure_months WITH ROLLUP
 )
 SELECT * FROM tenure_marital;
-
+ #!!! i dont seethe reason for this to be put in the anlysis but i will leave this here
 WITH tenure_marital AS (
     SELECT 
         COALESCE(`Marital status`, 'Total Company Distribution') AS marital,
@@ -269,27 +284,42 @@ SELECT * FROM tenure_marital;
 
 
 
+# i want to figure out which department have the best retention  
+# 👍 i can actual use this but need to refine this 
+	-- this can be use to identify the reason why some department have more people in 5 to 6 year , i all ready know that the 
+	-- highest people in lefter is only 4 years do their is definitelu have good retention for people with more years so i just need to know
+		-- why yhey leave or they could be an organization that make it hard to be senior and not giving enough oppurtinity to the 4year below
+   SELECT Department,tenure_months,
+   count(tenure_months) count_of_6_to_5_year
+    FROM diversity_dataset 
+where tenure_months>4
+    GROUP BY tenure_months,Department 
+    order by tenure_months,Department ;
+
 
 
 # anything with this have to type of analyze becuase one of them might be better for analyze than the other 
 -- -------------------------------------------------------------------------------------------------------------
+# now this look more use full 
+#this could be good because i analysis attrition,race,departmnet a covariate 
+#👍`this is good because this answer attrition,race,departmnet  at the same time and give an more refine and realistic answer
 with race_distribution as 
 (
-SELECT 
-    coalesce(Race,"Total Company Distribution") race ,
+SELECT Department,Race,
     sum( `attrition flag` = 1 ) * 100 / NULLIF(COUNT(*), 0) lefte,
     sum( `attrition flag` = 0 ) * 100 / NULLIF(COUNT(*), 0) stay
 
 FROM
     diversity_dataset
 
-GROUP BY Race with rollup
+GROUP BY Race,Department
+order by Race,Department
  )SELECT 
     *
 FROM
-   tenure_race_distribution 
+   race_distribution 
  ;
-
+#!!! i dont need this
 WITH tenure_race_distribution AS (
     SELECT 
         COALESCE(
@@ -320,7 +350,7 @@ SELECT * FROM tenure_race_distribution;
 
 
 
-
+#✌might be good but meh
 WITH tenure_distribution AS (
     SELECT 
          coalesce(Gender,"Total Company Distribution") tenure_months,
@@ -333,6 +363,7 @@ SELECT
     *
 FROM tenure_distribution;
 -- -------------------------------------------------------------------------------------------------------------
+#!!! already done this
 WITH engagement_marital AS (
     SELECT 
         COALESCE(CAST(`Engagement Score` AS CHAR), 'Total Company Distribution') AS engagement,
@@ -348,7 +379,7 @@ SELECT * FROM engagement_marital;
 
 
 
-
+#!!! already done this
 WITH engagement_marital AS (
     SELECT 
         COALESCE(`Engagement Score`, 'Total Company Distribution') AS engagement,
@@ -363,7 +394,8 @@ SELECT * FROM engagement_marital;
 
 
 
-
+#this is good because its a covariate that answer and give out a more refine answer and not just an isolated one 
+#👍 this answer the question of distribution ofgender and how much left and stay but make it better because its a bit confusing
 WITH Department_gender_attrition AS (SELECT Gender,Department,
         SUM(`attrition flag` = 0 ) * 100 / NULLIF(COUNT(*), 0) AS stay,
         SUM(`attrition flag` = 1 ) * 100 / NULLIF(COUNT(*), 0) AS lefter
@@ -377,6 +409,7 @@ FROM Department_gender_attrition ;
 # this data shows that there is a good employee retention in 5 to 6 year employee but zero retention for 4 year below 
 #check other if they are correct
 #check other if they are correct
+#!!! kinda useless
 WITH tenure_attrition AS (
     SELECT 
      COALESCE(tenure_months, 'Total Company Distribution') AS tenureattrition,
@@ -389,7 +422,7 @@ SELECT
     *
 FROM tenure_attrition;
 
-
+#!!! kinda useless
 WITH tenure_marital AS (
     SELECT 
         COALESCE(`attrition flag`, 'Total Company Distribution') AS marital,
@@ -413,7 +446,8 @@ SELECT * FROM tenure_marital;
 #using coalesce is wrong where unless i want to know the total of stayer and lever but what i want to know is
 	#the attrition by department and the overall of the company
 
-
+# ✌meh
+	-- this could be use for analysing why some have low to zero attriton but other have high
 SELECT `Job Role`,
 	SUM(case when `attrition flag` = 1 then 1 else 0 end)/sum(case when `attrition flag` = 0 then 1 else 0 end) * 100 / COUNT(*) AS lefter,
     SUM(case when `attrition flag` = 1 then 1 else 0 end) con
@@ -427,6 +461,10 @@ group by `Job role`; # try reding this but with window function
 #take exitdate and calculate the time it take to fill the role or department by taking the
 # trainig time and if they are accepted if not then dont count 
 # i need to count the position not the employee and sum the vacancy and finding the ave
+
+#👍👍 definitely add but the vacancy day is wrong but the department and jobrole and lefter is good can be use 
+	-- because its use to know the attrition of jobrole in each department because some joob role is the same and if other department 
+	-- have it higher than other then they can learn from the lower rated jobrole
 with vancy as (
 select ExitDate,`Job Role`,Department,
 	(case when `Training Outcome` = "Completed" then `Training Date` end ) replacement
@@ -454,11 +492,13 @@ where vacancy_day > 1
     
     
     
-    
+#👍 this is like teh better cerion of the previus one but for department  since this count the open role but kinda meh so 
+-- i wil think if this is usefull to add
 with vancy as (
 SELECT 
     ExitDate,
     `Job Role`,
+    
     Department,
     (CASE
         WHEN `Training Outcome` = 'Completed' THEN `Training Date`
@@ -466,6 +506,7 @@ SELECT
 FROM
     training_and_development_stagging a
         JOIN
+        
     diversity_dataset b ON a.`Employee ID` = b.`Employee ID`
 ),vacancy as
 (
@@ -515,6 +556,7 @@ group by Department
     
     
     # ok i will do this and just get the ave of days and dat will me my open day and i will do Job role in depaertment instead of just department
+    #✌ kinda useless
     with cte_vacancy as (
     SELECT 
     `Job Role`,Department,
@@ -556,6 +598,7 @@ FROM
  
  
  #use this to analyze the jobrole
+ #✌ kinda useless 
 select `Job Role`,
 min(ExitDate),min(`Training Date`) from diversity_dataset a 
 join training_and_development_stagging b 
@@ -581,10 +624,10 @@ FROM
     training_and_development_stagging;
 
 
+#anything with !! or meh  need to stay since the code is good but not good eniygh to look at
 
 
-
-
+			-- 									*************************************DONE*******************************************************
 
 
 
