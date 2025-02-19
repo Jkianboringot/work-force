@@ -1,30 +1,57 @@
-#clasify querys to too univarieta or or covarieta 
-	# it must nnot be too simple and for every simple one that i pic there must by an advance one after it ,preferably related
+# redo everything and only focus on attrition by department  and maybe some job role and how different thing can afect it why is it why on some aspect and i will only analysis hard 
+	-- thing like covairate bivariate so only complex things i will take other analysis that i made but only the one that help me with invesgating attriton
 
 #👍  
 	-- this look at if engagment has a corelation with attrition
 		-- this see if some engagemnt have higher attriion than other , univariate so mayby connets this with other to have a better look at this to simple
-	#try making this a store procedure
+#STORED
 with Engagementattrition as 
-(select survey.`Engagement Score`,  COUNT(CASE WHEN `attrition flag` = 1 THEN employee.`Employee Id` END) * 100.0 / NULLIF(count(*), 0) AS Engagement_attrition_rate
-from second_project.employee_data_cleaned as employee
+(select survey.`Engagement Score`,  
+			cast((sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END) * 100.0 / count(*)) as decimal(10,2)) AS lefter_rate,
+			cast((sum(CASE WHEN `attrition flag` = 0 THEN 1 else 0 END) * 100.0 / count(*))  as decimal(10,2)) AS stayer_rate								
+from second_project.employee_data_cleaned as employee																		
 join employee_engagement_survey_data as survey
 	on employee.`Employee ID`=survey.`Employee ID`
 group by survey.`Engagement Score`
-order by survey.`Engagement Score`
-)
-,CompanyAttrition as 
-(
-select COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END) * 100.0 / NULLIF(count(*), 0)AS company_avg_attrition
-from second_project.employee_data_cleaned
 )
 SELECT 
     m.`Engagement Score`,
-    m.Engagement_attrition_rate, 
-    c.company_avg_attrition
+    m.lefter_rate, 
+    m.stayer_rate
+    ,cast((select sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END) * 100.0 / NULLIF(count(*), 0) from second_project.employee_data_cleaned) as decimal(10,2)) as 
+	company_attrition
 FROM Engagementattrition m
-JOIN CompanyAttrition c ON 1=1
-ORDER BY Engagement_attrition_rate  DESC;
+ORDER BY lefter_rate  DESC;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 		#use pearson correlation coefficeint to calculate if engagement has a correlation with turnover
@@ -36,39 +63,25 @@ ORDER BY Engagement_attrition_rate  DESC;
     -- this confirm that engagement alone have no corelation to attrition
 with engagement_correlation as
 (
-SELECT `Engagement Score` ,count(CASE WHEN `attrition flag`=1 then edc.`Employee ID`end) * 100 / NULLIF(count(*), 0) as engagement_attrition
+SELECT `Engagement Score` ,cast((sum(CASE WHEN `attrition flag`=1 then 1 else 0 end) * 100 / count(*))as decimal(10,2)) as engagement_attrition
 from second_project.employee_data_cleaned edc
 join employee_survey_stagging ess
 	on edc.`Employee ID`=ess.`Employee ID`
 group by `Engagement Score`
-order by `Engagement Score`
 ),avg_engagement_cte as 
 (
 select avg(`Engagement Score`) avg_engagement_score,
 		avg(engagement_attrition) avg_engagement_attrition
  from engagement_correlation
- ),numerator_denominator as 
- (
- select sum(atr.`Engagement Score`-aec.avg_engagement_score )
-		* SUM(atr.`Engagement_attrition`-aec.avg_engagement_score )  numerator ,
+)
+ select sum((atr.`Engagement Score`-aec.avg_engagement_score )
+		* (atr.`Engagement_attrition`-aec.avg_engagement_attrition ))   /
 			sqrt(sum(power(atr.`Engagement Score`-aec.avg_engagement_score ,2))
-			* SUM(power(atr.`Engagement_attrition`-aec.avg_engagement_score ,2)))  denominator
- from engagement_correlation atr,avg_engagement_cte aec
- )
- select numerator/denominator from numerator_denominator
+			* SUM(power(atr.`Engagement_attrition`-aec.avg_engagement_attrition ,2)))  	correlation_coefficient
+ from engagement_correlation atr
+ join avg_engagement_cte aec
+	 ON 1=1
 ;
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -78,19 +91,19 @@ select avg(`Engagement Score`) avg_engagement_score,
 
 #👍 department attrition
 	-- this see if some deparment have higher attriion than other , univariate so mayby connets this with other to have a better look at this to simple
-    #try making this a store procedure
+#STORED
 with Departmentattrition as 
 (select `Department`,
-					COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END)* 100.0 / NULLIF(count(*), 0) lefter,
-                    COUNT(CASE WHEN `attrition flag` = 0 THEN `Employee Id` END)* 100.0 / NULLIF(count(*), 0) stayer
+					cast((COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END)* 100.0 / count(*))as decimal(10,2)) lefter,
+                    cast((COUNT(CASE WHEN `attrition flag` = 0 THEN `Employee Id` END)* 100.0 / count(*))as decimal(10,2))  stayer
 from second_project.employee_data_cleaned
 group by Department
-order by Department
 )
 SELECT 
     m.Department,
 	m.lefter,
     m.stayer
+    ,cast((select sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0  END)*100/count(*) from second_project.employee_data_cleaned)as decimal(10,2)) company_attrition
 FROM Departmentattrition m
 ;
 
@@ -98,17 +111,18 @@ FROM Departmentattrition m
 
 
 
+# ************************************************************************ to do later ************************************************************************
+
 #👍 performance attrition shorten the code
 	-- this confirm that performance alone have no corelation to attrition
 	-- this could be better by covariating it with other since this does not answer a question
     
 with Performance_attrition_corrlation as 
 (select
-		`Performance Score`,  COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END)  lefted_employee,
-							  COUNT(CASE WHEN `attrition flag` = 0 THEN `Employee Id` END) AS stayed_employee
+		`Performance Score`,  sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END)  lefted_employee,
+							  sum(CASE WHEN `attrition flag` = 0 THEN 1 else 0 END) AS stayed_employee
 from second_project.employee_data_cleaned
 group by `Performance Score`
-order by `Performance Score`
 ),observe as(
 SELECT 
     m.`Performance Score`,
@@ -117,7 +131,7 @@ SELECT
 	sum(lefted_employee+stayed_employee) total_employee,
     case when `Performance Score` is null then "Total Performance Score" else  `Performance Score`end  as `Total Performance Score`
 FROM Performance_attrition_corrlation m
-group by `Performance Score` with rollup 
+group by `Performance Score` with rollup
 ORDER BY `Performance Score` DESC
 ),expected_value as 
 (
@@ -131,48 +145,73 @@ limit 1
 			sum(e.j)*sum(t.lefted_sum+ t.stayed_sum)/sum(e.total_employee) expected_stayed
 from expected_value e,observe t
 group by t.`Performance Score`
-limit 4
+
 )
-select o.`Performance Score`,sum(power(e.expected_left-o.lefted_sum,2))/e.expected_left,
-						sum(power(e.expected_stayed-o.stayed_sum,2))/e.expected_stayed
+select o.`Performance Score`,sum(power(e.expected_left-o.lefted_sum,2))/e.expected_left lefter_correlation,
+						sum(power(e.expected_stayed-o.stayed_sum,2))/e.expected_stayed stay_correlation
   from expected_attrition e 
  join observe o
 	on e.`Performance Score`=o.`Performance Score`
- GROUP BY `Performance Score`
+ GROUP BY `Performance Score`  
+;
 
- ;
+
+# do later
+with Performance_attrition_corrlation as 
+(
+select	 `Performance Score`,
+				sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END)  AS lefted_employee,
+				sum(CASE WHEN `attrition flag` = 0 THEN 1 else 0 END) AS stayed_employee,
+				sum((CASE WHEN `attrition flag` = 1 THEN 1 else 0 END)+(CASE WHEN `attrition flag` = 0 THEN 1 else 0 END)) total_employee
+from second_project.employee_data_cleaned
+group by `Performance Score`
+),expected_attrition as
+(select `Performance Score`,
+			sum(lefted_employee)*sum(lefted_employee+ stayed_employee)/sum(total_employee) as expected_left,
+			sum(stayed_employee)*sum(lefted_employee+ stayed_employee)/sum(total_employee) expected_stayed
+from  Performance_attrition_corrlation 
+group by `Performance Score`
+)
+select o.`Performance Score`,sum(power(e.expected_left-o.lefted_employee,2))/e.expected_left lefter_correlation,
+						sum(power(e.expected_stayed-o.stayed_employee,2))/e.expected_stayed stay_correlation
+  from expected_attrition e 
+ join  Performance_attrition_corrlation o
+	on e.`Performance Score`=o.`Performance Score`
+ GROUP BY `Performance Score`  
+;
+#this analysis can be use to confirm the query below
+
+# *************************************************************************to do later************************************************************************
+
+
+
+
+
+
+
+
 
 
 #covariate of performance and department 👍 performance department attrition (needs investigation ,'Software Engineering')!!
 	-- since department and performance alone is enuogh to confirm i combined them and see if the result stay the same or change 
 	-- good analysis but the code is shit
 		-- maybe try to do a spearman corrlation on  this or chi to confirm id department and performance has a corelation
+# this analysis is the best type of analysis
+-- ✔ this is done
 with Performancedeparment_vs_attrition as 
 (select `Performance Score`,Department, 
-			#COUNT(CASE WHEN `attrition flag` = 1 THEN employee.`Employee Id` END) * 100.0 / NULLIF(count(*), 0) AS performance_attrition_rate,
-			count(CASE WHEN `attrition flag` = 1 THEN employee.`Employee Id` END)* 100.0 / NULLIF(count(*), 0) employee_left,
-            count(CASE WHEN `attrition flag` = 0 THEN employee.`Employee Id` END) * 100.0 / NULLIF(count(*), 0)employee_stay
-from second_project.employee_data_cleaned as employee
+			cast((sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END)* 100.0 / count(*)) as decimal(10,2)) employee_left,
+            cast((sum(CASE WHEN `attrition flag` = 0 THEN 1 else 0 END)* 100.0 / count(*)) as decimal(10,2)) employee_stay
+from second_project.employee_data_cleaned 
 group by `Performance Score`,Department
-order by `Performance Score`,Department
-)
-,totalattrition as 
-(
-select COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END) * 100.0 / NULLIF(count(*), 0) AS company_avg_attrition
-from second_project.employee_data_cleaned
 )
 SELECT 
     m.`Performance Score`,
      m.Department,
 	m.employee_left,
-    
     m.employee_stay,
-   
-    #m.performance_attrition_rate, 
-    c.company_avg_attrition
+	cast((select sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END) * 100.0 / NULLIF(count(*), 0) from second_project.employee_data_cleaned)as decimal(10,2)) as company_attrition
 FROM Performancedeparment_vs_attrition m
-JOIN totalattrition  c ON 1=1
-
 ORDER BY Department DESC
 ;
 
@@ -187,6 +226,7 @@ ORDER BY Department DESC
 			#and its no but look at this wiht other like Department or jobrole
 		-- this confirm that engagement alone have no corelation to attrition
 	#and try this with engagemnt 
+    #do this after am done with the other attrition
 with Department_attrition_corrlation as 
 (select
 		Department,  COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END)  lefted_employee,
@@ -243,6 +283,9 @@ select o.Department,sum(power(e.expected_left-o.lefted_sum,2))/e.expected_left,
 
 
 # !!! tenure if lefter thisis bad find the better one
+-- COULD be good be need toe be long like make year column
+-- i think there is better one this where it go up to six year
+#🙄🔐🛠🛠🛠 already have a better one
 with tenure_performance as 
 (
 select `Performance Score`,TIMESTAMPDIFF(year,StartDate,ExitDate)year,
@@ -293,28 +336,18 @@ group by year,companyattrition
 	-- maybe do a spearman correlation with this but to confirm if this actualy dont affect attriton as much
 with jobrole_attrition as 
 (select `Job Role`, 
-		COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END) * 100.0 / NULLIF(count(*), 0) AS jobrole_attrition_rate_left,
-		COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END) employee_left,
-        COUNT(CASE WHEN `attrition flag` = 0 THEN `Employee Id` END) * 100.0 / NULLIF(count(*), 0) AS jobrole_attrition_rate_stay,
-        COUNT(CASE WHEN `attrition flag` = 0 THEN `Employee Id` END) employee_stay
+		 sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END) * 100.0 / NULLIF(count(*), 0) AS jobrole_attrition_rate_left,
+        sum(CASE WHEN `attrition flag` = 0 THEN 1 else 0 END) * 100.0 / NULLIF(count(*), 0) AS jobrole_attrition_rate_stay
 from second_project.employee_data_cleaned
 group by `Job Role`
-order by `Job Role`
-)
-,CompanyAttrition as 
-(
-select COUNT(CASE WHEN `attrition flag` = 1 THEN `Employee Id` END) * 100.0 / NULLIF(count(*), 0) AS company_avg_attrition
-from second_project.employee_data_cleaned
 )
 SELECT 
     m.`Job Role`,
-    m.employee_left,
-	m.employee_stay,
+    
     m.jobrole_attrition_rate_left, 
     m.jobrole_attrition_rate_stay,
-    c.company_avg_attrition
+    cast((select sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END) * 100.0 / NULLIF(count(*), 0) from second_project.employee_data_cleaned)as decimal(10,2)) "company attrition"
 FROM jobrole_attrition m
-JOIN CompanyAttrition c ON 1=1
 
 ORDER BY jobrole_attrition_rate_left  DESC
 ;
@@ -348,14 +381,12 @@ ORDER BY jobrole_attrition_rate_left  DESC
 
 #iwant to check the satisfaction level of lefter anf stayer
 	-- if satisfaction affect the attrition but it look like it does not so combine with other to see more because its to simple
-#try making this a store procedure
+
+#STORED
 with Satisfaction_Score as (
 select `Satisfaction Score`,
-							
-							count(case when `attrition flag` =1 then dat.`Employee ID` end)*100 /NULLIF(count(*), 0)  leftemployee_satisfaction,
-							#count(case when `attrition flag` =1 then dat.`Employee ID` end) employee_left,
-                            count(case when `attrition flag` =0 then dat.`Employee ID` end)*100 /NULLIF(count(*), 0) stayemployee_satisfaction
-							#count(case when `attrition flag` =0 then dat.`Employee ID` end) employee_stay
+							 sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END) * 100.0 / count(*)  leftemployee_satisfaction,
+							 sum(CASE WHEN `attrition flag` = 0 THEN 1 else 0 END) * 100.0 / count(*) stayemployee_satisfaction
 from employee_survey_stagging  sur
 join second_project.employee_data_cleaned dat
 	on sur.`Employee ID`=dat.`Employee ID`
@@ -365,11 +396,11 @@ group by `Satisfaction Score`
 
 
 #👍`worklife balance by department
+-- search what is the production code for this
 with worklifebalance_Score as (
-select `Work-Life Balance Score`,Department,count(case when `attrition flag` =1 then dat.`Employee ID` end)*100 /NULLIF(count(*), 0) leftworklifebalance_Score,
-							#count(case when `attrition flag` =1 then dat.`Employee ID` end) employee_left,
-                            count(case when `attrition flag` =0 then dat.`Employee ID` end)*100 /NULLIF(count(*), 0) stayworklifebalance_Score
-							#count(case when `attrition flag` =0 then dat.`Employee ID` end) employee_stay
+select `Work-Life Balance Score`,Department,
+							sum(CASE WHEN `attrition flag` = 1 THEN 1 else 0 END) * 100.0 / count(*) left_work_life_balance_Score,
+							sum(CASE WHEN `attrition flag` = 0 THEN 1 else 0 END) * 100.0 / count(*) stay_work_life_balance_Score
 from second_project.employee_survey_stagging  sur
 join second_project.employee_data_cleaned dat
 	on sur.`Employee ID`=dat.`Employee ID`
@@ -444,30 +475,19 @@ order by `Department`
 
 
 
+#this figure out what year most people left
+#✌ this a great findings because we can see that 5 6 have no lefter but 1 and 2 have alot of lefter even higher then the stayer this mean their is great retention
+	-- or better treatment for senior level and not so much in low tenure years
+#stored
+select TIMESTAMPDIFF(year, a.StartDate, COALESCE(a.ExitDate, CURDATE())) years,
+		count(case when `attrition flag`= 1  and ExitDate is not null then `Employee ID` end ) as employee_left , # i dont need to do this since this i how i got attrition flag
+        count(case when `attrition flag`= 0 then `Employee ID` end ) as employee_stay 
+		
+from second_project.employee_data_cleaned a
+group by TIMESTAMPDIFF(year, a.StartDate, COALESCE(a.ExitDate, CURDATE())) with rollup
+order by years desc;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#when analysing did you consider this 
-#	did this answer the question of analysing the reason for employee turnover what is a way to improve it
-	-- after do cleaning add it to github
-	-- 									*************************************DONE*******************************************************
-
-
-
-
-
+#i will redo everything and this time i will only focus on attriton and investigate thourhly fuck the other 
 
 
 

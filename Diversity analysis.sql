@@ -32,6 +32,7 @@ SELECT
 # do this for all the query after dont 				½W♣
 #👍 this look at the devirsity of gender in deparment some deparment might be baised to some gender but it need to see attriton to confirm
 	-- maybe improve this by race,retention or something else because kinda narrow still good
+#stored
  WITH gender_distribution AS (
     SELECT 
          coalesce(Department,"Total Company Distribution") Department,
@@ -50,6 +51,7 @@ FROM gender_distribution;
 
  #👍`look at the race distribution in deparment because some deparment might be baised to some race but it need to see attriton to confirm
 	-- maybe improve this by race,retention or something else because kinda narrow still good
+#stored
  with department_race_distribution as 
 (
 SELECT 
@@ -77,6 +79,7 @@ FROM
 	-- maybe improve this by race,retention or something else because kinda narrow still good
     -- STILL 	think this is not really usefull unless if married divored have a high attrition because the reason they could leave is their personal life 
 		-- or poor lifeworkbalance
+#stored
 WITH department_marital AS (
     SELECT 
         COALESCE(Department, 'Total Company Distribution') AS Department,
@@ -119,7 +122,7 @@ elseif diversity = "marital" then
         SUM(`Marital status` = 'Widowed') * 100 / NULLIF(COUNT(*), 0) AS Widowed,
         SUM(`Marital status` = 'Single') * 100 / NULLIF(COUNT(*), 0) AS Single,
         SUM(`Marital status` = 'Divorced') * 100 / NULLIF(COUNT(*), 0) AS Divorced
-    FROM diversity_dataset 
+    FROM diversity_dataset
     GROUP BY Department WITH ROLLUP;
     
 elseif diversity = "race" then
@@ -142,16 +145,17 @@ end $$
 
 delimiter ;
 
-call diversity_distribution("maritial");
+call diversity_distribution("race"); 
 
 
-
+select * from diversity_dataset;
 
 
 
 
 #👍``combined this with attriton to answer see if male and female engagement contribute to high attrition
 		-- i coulk combined it with department but i dint see the reason todo that since most of the gender is equal to deparment except with one but i could tryx
+#stored
 WITH engagement_distribution AS (
     SELECT 
          coalesce(`Engagement Score`,"Total Company Distribution") enagagement,
@@ -169,6 +173,7 @@ FROM engagement_distribution;
 
  #👍``combined this with attriton to answer see if race engagement contribute to high attrition
 	-- combine this with department to see if some department treat certain race badly or having poor management
+#stored
  with engagement_race_distribution as 
 (
 SELECT 
@@ -194,6 +199,7 @@ select * from diversity_dataset;
 
 #👍 i wantto now if certian marittal have lower engagement that can be cause by pwersonal problem
 	-- this isgood i dont have to combine with anything except attriton because this could cause loss of focus and cause stress and thus adding to attrition
+#stored
 WITH engagement_marital AS (
     SELECT 
         COALESCE(`Engagement Score`, 'Total Company Distribution') AS engagement,
@@ -212,6 +218,7 @@ SELECT * FROM engagement_marital;
 
 
 #useless
+#stored
 WITH tenure_distribution AS (
     SELECT 
          coalesce(tenure_months,"Total Company Distribution") tenure_months,
@@ -229,6 +236,7 @@ FROM tenure_distribution;
 
  # 👍 look at race tenure if some race have low on the 4 to 6 year then thatsa  sign that they are being suppress or being with hold of oppurtinity to grow
 	-- or some of them being in 0 to 1 and having low means either they are being discriminated but look at this with attriton and department to confirm
+ #stored
  with tenure_race_distribution as 
 (
 SELECT 
@@ -253,6 +261,7 @@ FROM
 
  -- -------------------------------------------------------------------------------------------------------------
  #!!! i dont seethe reason for this to be put in the anlysis but i will leave this here
+#stored
 WITH tenure_marital AS (
     SELECT 
         COALESCE(tenure_months, 'Total Company Distribution') AS tenure,
@@ -319,29 +328,6 @@ order by Race,Department
 FROM
    race_distribution 
  ;
-#!!! i dont need this
-WITH tenure_race_distribution AS (
-    SELECT 
-        COALESCE(
-            CASE 
-                WHEN `attrition flag` IS NULL THEN 'Grand Total' 
-                WHEN `attrition flag` = 1 THEN 'Left Company' 
-                ELSE 'Still Employed' 
-            END, 'Total Company Distribution'
-        ) AS tenure,
-        
-        SUM(CASE WHEN Race = 'Black' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0) AS Black,
-        SUM(CASE WHEN Race = 'Asian' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0) AS Asian,
-        SUM(CASE WHEN Race = 'White' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0) AS White,
-        SUM(CASE WHEN Race = 'Hispanic' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0) AS Hispanic,
-        SUM(CASE WHEN Race NOT IN ('Black', 'Asian', 'White', 'Hispanic') OR Race IS NULL THEN 1 ELSE 0 END) 
-            * 100.0 / NULLIF(COUNT(*), 0) AS Other
-
-    FROM diversity_dataset
-    GROUP BY `attrition flag` WITH ROLLUP
-)
-SELECT * FROM tenure_race_distribution;
-
 
 
 
@@ -351,6 +337,7 @@ SELECT * FROM tenure_race_distribution;
 
 
 #✌might be good but meh
+#stored
 WITH tenure_distribution AS (
     SELECT 
          coalesce(Gender,"Total Company Distribution") tenure_months,
@@ -364,6 +351,7 @@ SELECT
 FROM tenure_distribution;
 -- -------------------------------------------------------------------------------------------------------------
 #!!! already done this
+#stored
 WITH engagement_marital AS (
     SELECT 
         COALESCE(CAST(`Engagement Score` AS CHAR), 'Total Company Distribution') AS engagement,
@@ -380,6 +368,7 @@ SELECT * FROM engagement_marital;
 
 
 #!!! already done this
+#stored
 WITH engagement_marital AS (
     SELECT 
         COALESCE(`Engagement Score`, 'Total Company Distribution') AS engagement,
@@ -396,6 +385,7 @@ SELECT * FROM engagement_marital;
 
 #this is good because its a covariate that answer and give out a more refine answer and not just an isolated one 
 #👍 this answer the question of distribution ofgender and how much left and stay but make it better because its a bit confusing
+#stored
 WITH Department_gender_attrition AS (SELECT Gender,Department,
         SUM(`attrition flag` = 0 ) * 100 / NULLIF(COUNT(*), 0) AS stay,
         SUM(`attrition flag` = 1 ) * 100 / NULLIF(COUNT(*), 0) AS lefter
@@ -409,7 +399,8 @@ FROM Department_gender_attrition ;
 # this data shows that there is a good employee retention in 5 to 6 year employee but zero retention for 4 year below 
 #check other if they are correct
 #check other if they are correct
-#!!! kinda useless
+#👍 good you can figure why who to focus on for retention and ask why the retntion for low tenure
+#stored
 WITH tenure_attrition AS (
     SELECT 
      COALESCE(tenure_months, 'Total Company Distribution') AS tenureattrition,
@@ -423,6 +414,8 @@ SELECT
 FROM tenure_attrition;
 
 #!!! kinda useless
+#stored
+#shit code
 WITH tenure_marital AS (
     SELECT 
         COALESCE(`attrition flag`, 'Total Company Distribution') AS marital,
@@ -498,7 +491,6 @@ with vancy as (
 SELECT 
     ExitDate,
     `Job Role`,
-    
     Department,
     (CASE
         WHEN `Training Outcome` = 'Completed' THEN `Training Date`
