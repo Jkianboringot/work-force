@@ -1,3 +1,21 @@
+# redo everything and only focus on attrition by department  and maybe some job role and how different thing can afect it why is it why on some aspect and i will only analysis hard 
+	-- thing like covairate bivariate so only complex things i will take other analysis that i made but only the one that help me with invesgating attriton
+
+#goal i figure out why are they more people that left than stay
+	#see if a certain month of year they lEAVE the most (group by year then months)
+    #are poeple with resignation,voluntary,involuntary have high or low engagemnt score 
+	#analyze the perfermance score of involuntary lefter
+	#analysis the work life balnce ,poor management toxic work palc,carrer growth of voluntatry and resign
+	#why are there so many people leaving in zero year
+
+#for to days do this and improve it as much as you can i dont care if the analysis is a bit useless just in time improve as oyu learn how to do advanve analysis
+
+
+
+
+
+
+
 To analyze attrition in a meaningful and complex way for your portfolio, you should consider diving into multiple aspects and advanced techniques. Here’s a framework to approach it, which should challenge your skills and add depth to your portfolio:
 
 ### 1. **Attrition Rate Analysis**

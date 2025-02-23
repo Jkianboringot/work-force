@@ -294,9 +294,22 @@ else
 end $$
 delimiter ;;
 
+call diversity_attrition("marital")
 
 
 
+#department,jobrole, engagement score highst
+with cte as (
+select a.Department,a.`Job Role`,b.`Engagement Score`,
+			sum(case when `attrition flag`=1 then 1 else 0 end) lefter
+from employee_data_cleaned a
+join employee_survey_stagging b
+	on a.`Employee ID`=b.`Employee ID`
+group by a.Department,a.`Job Role`,b.`Engagement Score`
+)select  * from(select * ,row_number() over(partition by Department order by lefter desc) as ranking
+from cte) a
+where  ranking <=3
+;
 
 
 

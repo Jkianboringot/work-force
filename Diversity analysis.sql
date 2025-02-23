@@ -2,7 +2,7 @@
 	-- the purpose is to improve the company equatibility or suggest it 
 
 # just did this because i dont want to join to much
-create table diversity_datasett as 
+create table diversity_dataset as 
 (
 SELECT 
     a.`Employee ID`,
@@ -16,7 +16,7 @@ SELECT
     a.`Current Employee Rating`,
     b.`Engagement Score`,
     b.`Satisfaction Score`,
-    TIMESTAMPDIFF(year, a.StartDate, COALESCE(a.ExitDate, CURDATE()))tenure_months,
+    TIMESTAMPDIFF(year, a.StartDate, COALESCE(a.ExitDate, CURDATE()))tenure_year,
     a.`attrition flag`
     from employee_data_cleaned a
         JOIN
@@ -298,12 +298,12 @@ SELECT * FROM tenure_marital;
 	-- this can be use to identify the reason why some department have more people in 5 to 6 year , i all ready know that the 
 	-- highest people in lefter is only 4 years do their is definitelu have good retention for people with more years so i just need to know
 		-- why yhey leave or they could be an organization that make it hard to be senior and not giving enough oppurtinity to the 4year below
-   SELECT Department,tenure_months,
-   count(tenure_months) count_of_6_to_5_year
+   SELECT Department,tenure_year,
+   count(tenure_year) count_of_6_to_5_year
     FROM diversity_dataset 
-where tenure_months>4
-    GROUP BY tenure_months,Department 
-    order by tenure_months,Department ;
+where tenure_year>4
+    GROUP BY tenure_year,Department 
+    order by tenure_year,Department ;
 
 
 
@@ -346,6 +346,7 @@ WITH tenure_distribution AS (
     FROM diversity_dataset
     GROUP BY Gender WITH ROLLUP
 )
+
 SELECT 
     *
 FROM tenure_distribution;
@@ -499,6 +500,7 @@ FROM
     training_and_development_stagging a
         JOIN
         
+        
     diversity_dataset b ON a.`Employee ID` = b.`Employee ID`
 ),vacancy as
 (
@@ -516,9 +518,9 @@ FROM
     WHERE
         replacement AND `ExitDate` IS NOT NULL) AS t
         
-),vacancy_calculation as (
+)
 SELECT 
-    a.`Department`,
+    a.`Department`,b.`Job Role`,
     count(case when `attrition flag`=1 then a.`Job Role`end) / COUNT(a.`Job Role`) * 100 vacancy_rate
     ,count(a.`Job Role`) AS total_role,
    any_value(b.vacancy_day) as department_vacancy,
@@ -529,17 +531,7 @@ FROM
     vacancy b ON a.`Department` = b.`Department`
 WHERE
     b.vacancy_day > 1
-GROUP BY `Department`,b.`Job Role` # i think i need to sperate this 
-)
-SELECT Department,
-  any_value(open_role) open_role
-  ,any_value(total_role)total_role,
-  any_value(department_vacancy)department_vacancy,
-  any_value(vacancy_rate) vacancy_rate
-FROM
-    vacancy_calculation b 
-group by Department
-    #fix this its too slow
+GROUP BY `Department`,b.`Job Role`
 ;
 
 
